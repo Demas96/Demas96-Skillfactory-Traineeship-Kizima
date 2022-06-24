@@ -9,9 +9,15 @@ class CaseInsensitiveTextField(fields.TextField):
 
 
 class Coords(models.Model):
-    latitude = models.FloatField(max_length=255)
-    longitude = models.FloatField(max_length=255)
-    height = models.IntegerField()
+    latitude = models.FloatField(max_length=255, verbose_name='Широта')
+    longitude = models.FloatField(max_length=255, verbose_name='Долгота')
+    height = models.IntegerField(verbose_name='Высота')
+
+    def __str__(self):
+        return f'{self.latitude} {self.longitude} {self.height}'
+
+    class Meta:
+        verbose_name_plural = ("Координаты")
 
 
 
@@ -20,22 +26,27 @@ class Users(models.Model):
     email = CaseInsensitiveTextField(unique=True)
     firstname = models.CharField(max_length=255)
     lastname = models.CharField(max_length=255)
-    patronymic = models.CharField(max_length=255, blank=True)
+    patronymic = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
 
+    def __str__(self):
+        return f'{self.email}: {self.lastname} {self.firstname} {self.patronymic}'
+
+    class Meta:
+        verbose_name_plural = ("Пользователи")
 
 class PerevalAdd(models.Model):
-    NEW = 'N'
-    PENDING = 'P'
-    ACCEPTED = 'A'
-    REJECTED = 'R'
+    NEW = 'NEW'
+    PENDING = 'PENDING'
+    ACCEPTED = 'ACCEPTED'
+    REJECTED = 'REJECTED'
     STATUS_CHOICES = [
         (NEW, 'new'),
         (PENDING, 'pending',),
         (ACCEPTED, 'accepted',),
         (REJECTED, 'rejected')
     ]
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=NEW)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=NEW)
     coords = models.OneToOneField(Coords, on_delete=models.CASCADE)
     beautyTitle = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
@@ -48,12 +59,24 @@ class PerevalAdd(models.Model):
     level_spring = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'{self.beautyTitle} {self.title} {self.other_titles}'
+
+    class Meta:
+        verbose_name_plural = ("Перевалы")
+
 
 class Images(models.Model):
     pereval = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE)
     img = models.TextField()
     title = models.CharField(max_length=255)
     date_added = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.pereval}: {self.title}'
+
+    class Meta:
+        verbose_name_plural = ("Изображения")
 
 
 
