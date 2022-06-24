@@ -10,7 +10,7 @@ class CaseInsensitiveTextField(fields.TextField):
 
 class Coords(models.Model):
     latitude = models.FloatField(max_length=255)
-    ongitude = models.FloatField(max_length=255)
+    longitude = models.FloatField(max_length=255)
     height = models.IntegerField()
 
 
@@ -18,6 +18,10 @@ class Coords(models.Model):
 class Users(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     email = CaseInsensitiveTextField(unique=True)
+    firstname = models.CharField(max_length=255)
+    lastname = models.CharField(max_length=255)
+    patronymic = models.CharField(max_length=255, blank=True)
+    phone = models.CharField(max_length=255)
 
 
 class PerevalAdd(models.Model):
@@ -32,12 +36,12 @@ class PerevalAdd(models.Model):
         (REJECTED, 'rejected')
     ]
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=NEW)
-    coords_id = models.OneToOneField(Coords, on_delete=models.CASCADE)
+    coords = models.OneToOneField(Coords, on_delete=models.CASCADE)
     beautyTitle = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     other_titles = models.CharField(max_length=255)
     connect = models.TextField(blank=True)
-    add_time = models.DateTimeField(auto_now_add=True)
+    add_time = models.DateTimeField()
     level_winter = models.CharField(max_length=255, blank=True)
     level_summer = models.CharField(max_length=255, blank=True)
     level_autumn = models.CharField(max_length=255, blank=True)
@@ -46,8 +50,9 @@ class PerevalAdd(models.Model):
 
 
 class Images(models.Model):
-    pereval_id = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE)
-    img = models.BinaryField()
+    pereval = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE)
+    img = models.TextField()
+    title = models.CharField(max_length=255)
     date_added = models.DateField(auto_now_add=True)
 
 
