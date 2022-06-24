@@ -1,6 +1,6 @@
 from django.urls import path, include
-from .views import submitData
+from .views import *
 
 urlpatterns = [
-    path('submitData', submitData),
+    path('api', PerevalAPIView.as_view()),
 ]
