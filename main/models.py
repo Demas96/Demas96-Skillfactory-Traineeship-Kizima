@@ -20,7 +20,6 @@ class Coords(models.Model):
         verbose_name_plural = ("Координаты")
 
 
-
 class Users(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     email = CaseInsensitiveTextField(unique=True)
@@ -34,6 +33,7 @@ class Users(models.Model):
 
     class Meta:
         verbose_name_plural = ("Пользователи")
+
 
 class PerevalAdd(models.Model):
     NEW = 'NEW'
@@ -77,6 +77,21 @@ class Images(models.Model):
 
     class Meta:
         verbose_name_plural = ("Изображения")
+
+
+class PerevalAreas(models.Model):
+    id_parent = models.IntegerField()
+    title = models.TextField()
+
+    def __str__(self):
+        return f'{self.title}'
+
+
+class ActivitiesTypes(models.Model):
+    title = models.TextField()
+
+    def __str__(self):
+        return f'{self.title}'
 
 
 
