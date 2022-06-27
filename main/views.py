@@ -7,6 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from rest_framework.views import APIView
 
+from .serializers import PerevalSerializer
+
+
 def submitData(request):
     try:
         json_body = json.loads(request.body)
@@ -60,6 +63,12 @@ def submitData(request):
         return data
 
 class PerevalAPIView(APIView):
+
     def post(self, request):
         data = submitData(request)
         return JsonResponse(data, status=data['status'])
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        data = PerevalSerializer(PerevalAdd.objects.get(pk=pk))
+        return JsonResponse(data.data)
