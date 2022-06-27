@@ -46,15 +46,7 @@ def submitData(request):
         }
         return data
 
-    except Exception as exs:
-        data = {
-            'status': '500',
-            'message': f'{exs}',
-            'id': 'null'
-        }
-        return data
-
-    except KeyError as exs:
+    except KeyError as exc:
         data = {
             'status': '400',
             'message': 'Не хватает полей',
@@ -62,13 +54,46 @@ def submitData(request):
         }
         return data
 
+    except Exception as exc:
+        data = {
+            'status': '500',
+            'message': f'{exc}',
+            'id': 'null'
+        }
+        return data
+
+
 class PerevalAPIView(APIView):
 
     def post(self, request):
         data = submitData(request)
         return JsonResponse(data, status=data['status'])
 
-    def get(self, request, *args, **kwargs):
+    def get(self, *args, **kwargs):
         pk = kwargs.get('pk', None)
-        data = PerevalSerializer(PerevalAdd.objects.get(pk=pk))
-        return JsonResponse(data.data)
+        try:
+            data = PerevalSerializer(PerevalAdd.objects.get(pk=pk)).data
+        except:
+            data = {
+                'message': f'Нет записи с id = {pk}'
+            }
+        return JsonResponse(data)
+
+    def patch(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        serializer = PerevalSerializer(PerevalAdd.objects.get(pk=pk), data=request.data, partial=True)
+        print(PerevalAdd.objects.get(pk=pk), request.data)
+        try:
+            if serializer.is_valid():
+                serializer.save()
+                data = {
+                    'state': 1,
+                    'message': 'Данные обновлены'
+                }
+                return JsonResponse(data)
+        except Exception as exc:
+            data = {
+                'state': 0,
+                'message': f'Не удалось обновить запись: {exc}'
+            }
+            return JsonResponse(data)
