@@ -84,7 +84,7 @@ class PerevalAPIView(APIView):
         serializer = PerevalSerializer(PerevalAdd.objects.get(pk=pk), data=request.data, partial=True)
         print(PerevalAdd.objects.get(pk=pk), request.data)
         try:
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 data = {
                     'state': 1,
