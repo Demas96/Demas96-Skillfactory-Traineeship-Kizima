@@ -97,3 +97,15 @@ class PerevalAPIView(APIView):
                 'message': f'Не удалось обновить запись: {exc}'
             }
             return JsonResponse(data)
+
+
+class EmailAPIView(APIView):
+    def get(self, *args, **kwargs):
+        email = kwargs.get('email', None)
+        if PerevalAdd.objects.filter(user__email=email):
+            data = PerevalSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
+        else:
+            data = {
+                'message': f'Нет записей от email = {email}'
+            }
+        return JsonResponse(data, safe=False)
