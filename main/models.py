@@ -73,7 +73,7 @@ class PerevalAdd(models.Model):
 
 class Images(models.Model):
     pereval = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE, related_name='images')
-    img = models.TextField()
+    data = models.TextField()
     title = models.CharField(max_length=255)
     date_added = models.DateField(auto_now_add=True)
 

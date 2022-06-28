@@ -1,80 +1,30 @@
-import json
-from django.db import IntegrityError
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
 from .models import *
 from rest_framework.views import APIView
-
-from .serializers import PerevalSerializer
-
-
-def submitData(request):
-    try:
-        json_body = json.loads(request.body)
-        user = json_body['user']
-        coords = json_body['coords']
-        level = json_body['level']
-        images = json_body['images']
-        # serialiser = PerevalSerializer(data=request.data)
-        # serialiser.is_valid(raise_exception=True)
-        if Users.objects.filter(email=user['email']).exists():
-            Users.objects.filter(email=user['email']).update(firstname=user['name'],
-                                                             lastname=user['fam'], patronymic=user['otc'],
-                                                             phone=user['phone'])
-            uss = Users.objects.get(email=user['email'])
-        else:
-            us = User.objects.create(username=user['email'])
-            uss = Users.objects.create(user=us, email=user['email'], firstname=user['name'],
-                                       lastname=user['fam'], patronymic=user['otc'],
-                                       phone=user['phone'])
-
-        co = Coords.objects.create(latitude=coords['latitude'], longitude=coords['longitude'],
-                                   height=coords['height'])
-        pe = PerevalAdd.objects.create(coords=co, beauty_title=json_body['beauty_title'],
-                                       title=json_body['title'], other_titles=json_body['other_titles'],
-                                       connect=json_body['connect'], add_time=json_body['add_time'],
-                                       level_winter=level['winter'], level_summer=level['summer'],
-                                       level_autumn=level['autumn'], level_spring=level['spring'],
-                                       user=uss)
-
-        for obj in images:
-            Images.objects.create(pereval=pe, img=obj['data'], title=obj['title'])
-        data = {
-            'status': '200',
-            'message': 'null',
-            'id': f"{pe.id}"
-        }
-        return data
-
-    except KeyError as exc:
-        data = {
-            'status': '400',
-            'message': f'Не хватает полей {exc}',
-            'id': 'null'
-        }
-        return data
-
-    except Exception as exc:
-        data = {
-            'status': '500',
-            'message': f'{exc}',
-            'id': 'null'
-        }
-        return data
+from .serializers import PerevalSerializer, PerevalDetailSerializer
 
 
 class PerevalAPIView(APIView):
 
     def post(self, request):
-        data = submitData(request)
-        return JsonResponse(data, status=data['status'])
+        pereval = PerevalSerializer(data=request.data)
+        try:
+            if pereval.is_valid(raise_exception=True):
+                data = pereval.save()
+                return JsonResponse(data, status=200, safe=False)
+        except Exception as exc:
+            data = {
+                'status': '400',
+                'message': f'Не хватает полей {exc}',
+                'id': 'null'
+            }
+        return JsonResponse(data, status=500, safe=False)
+
 
     def get(self, *args, **kwargs):
         pk = kwargs.get('pk', None)
         try:
-            data = PerevalSerializer(PerevalAdd.objects.get(pk=pk)).data
+            data = PerevalDetailSerializer(PerevalAdd.objects.get(pk=pk)).data
         except Exception as exc:
             data = {
                 'message': f'Нет записи с id = {pk} {exc}'
@@ -96,7 +46,6 @@ class PerevalAPIView(APIView):
                         'message': 'Данные обновлены'
                     }
                     return JsonResponse(data)
-                return JsonResponse(code=400, data="wrong parameters")
 
             except Exception as exc:
                 data = {
@@ -117,7 +66,7 @@ class EmailAPIView(APIView):
     def get(self, *args, **kwargs):
         email = kwargs.get('email', None)
         if PerevalAdd.objects.filter(user__email=email):
-            data = PerevalSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
+            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
         else:
             data = {
                 'message': f'Нет записей от email = {email}'
