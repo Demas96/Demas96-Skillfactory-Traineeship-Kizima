@@ -18,8 +18,20 @@ class PerevalAPIView(APIView):
                 'message': f'Не хватает полей {exc}',
                 'id': 'null'
             }
-        return JsonResponse(data, status=500, safe=False)
+        return JsonResponse(data, status=400, safe=False)
 
+    def get(self, request, *args, **kwargs):
+        email = request.GET.get('user__email', None)
+        if PerevalAdd.objects.filter(user__email=email):
+            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
+        else:
+            data = {
+                'message': f'Нет записей от email = {email}'
+            }
+        return JsonResponse(data, safe=False)
+
+
+class PerevalListAPIView(APIView):
 
     def get(self, *args, **kwargs):
         pk = kwargs.get('pk', None)
@@ -27,7 +39,7 @@ class PerevalAPIView(APIView):
             data = PerevalDetailSerializer(PerevalAdd.objects.get(pk=pk)).data
         except Exception as exc:
             data = {
-                'message': f'Нет записи с id = {pk} {exc}'
+                'message': f'Нет записи с id = {pk}'
             }
         return JsonResponse(data)
 
@@ -35,8 +47,8 @@ class PerevalAPIView(APIView):
         return PerevalAdd.objects.get(pk=pk)
 
     def patch(self, request, pk):
-        if PerevalAdd.objects.filter(pk=pk).values('status')[0]['status'] == 'NEW':
-            try:
+        try:
+            if PerevalAdd.objects.filter(pk=pk).values('status')[0]['status'] == 'NEW':
                 obj = self.get_object(pk)
                 serializer = PerevalSerializer(obj, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
@@ -46,29 +58,18 @@ class PerevalAPIView(APIView):
                         'message': 'Данные обновлены'
                     }
                     return JsonResponse(data)
-
-            except Exception as exc:
+            else:
                 data = {
                     'state': 0,
-                    'message': f'Не удалось обновить запись: {exc}'
+                    'message': f"Не удалось обновить запись: статус записи "
+                               f"{PerevalAdd.objects.filter(pk=pk).values('status')[0]['status']}"
                 }
                 return JsonResponse(data)
-        else:
+
+        except Exception as exc:
             data = {
                 'state': 0,
-                'message': f"Не удалось обновить запись: статус записи "
-                           f"{PerevalAdd.objects.filter(pk=pk).values('status')[0]['status']}"
+                'message': f'Не удалось обновить запись: {exc}'
             }
             return JsonResponse(data)
 
-
-class EmailAPIView(APIView):
-    def get(self, *args, **kwargs):
-        email = kwargs.get('email', None)
-        if PerevalAdd.objects.filter(user__email=email):
-            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
-        else:
-            data = {
-                'message': f'Нет записей от email = {email}'
-            }
-        return JsonResponse(data, safe=False)

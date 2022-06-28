@@ -7,6 +7,7 @@ class CoordsSerializer(serializers.ModelSerializer):
         model = Coords
         exclude = ('id',)
 
+
 class LevelSerialize(serializers.Serializer):
     winter = serializers.CharField(allow_blank=True)
     summer = serializers.CharField(allow_blank=True)
@@ -19,23 +20,28 @@ class UsersSerializer(serializers.ModelSerializer):
     fam = serializers.CharField(source='lastname')
     otc = serializers.CharField(source='patronymic')
     email = serializers.CharField()
+
     class Meta:
         model = Users
         fields = ('email', 'fam', 'name', 'otc', 'phone',)
         # exclude = ('id', 'user')
+
 
 class ImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Images
         exclude = ('id', 'pereval')
 
+
 class PerevalDetailSerializer(serializers.ModelSerializer):
     coords = CoordsSerializer()
     user = UsersSerializer()
     images = ImagesSerializer(many=True)
+
     class Meta:
         model = PerevalAdd
         fields = '__all__'
+
 
 class PerevalSerializer(serializers.ModelSerializer):
     coords = CoordsSerializer()
@@ -52,44 +58,35 @@ class PerevalSerializer(serializers.ModelSerializer):
         coords = validated_data['coords']
         level = validated_data['level']
         images = validated_data['images']
-        try:
-            if Users.objects.filter(email=user['email']).exists():
-                Users.objects.filter(email=user['email']).update(firstname=user['firstname'],
-                                                                 lastname=user['lastname'], patronymic=user['patronymic'],
-                                                                 phone=user['phone'])
-                uss = Users.objects.get(email=user['email'])
-            else:
-                us = User.objects.create(username=user['email'])
-                uss = Users.objects.create(user=us, email=user['email'], firstname=user['firstname'],
-                                           lastname=user['lastname'], patronymic=user['patronymic'],
-                                           phone=user['phone'])
+        if Users.objects.filter(email=user['email']).exists():
+            Users.objects.filter(email=user['email']).update(firstname=user['firstname'],
+                                                             lastname=user['lastname'], patronymic=user['patronymic'],
+                                                             phone=user['phone'])
+            uss = Users.objects.get(email=user['email'])
+        else:
+            us = User.objects.create(username=user['email'])
+            uss = Users.objects.create(user=us, email=user['email'], firstname=user['firstname'],
+                                       lastname=user['lastname'], patronymic=user['patronymic'],
+                                       phone=user['phone'])
 
-            co = Coords.objects.create(latitude=coords['latitude'], longitude=coords['longitude'],
-                                       height=coords['height'])
+        co = Coords.objects.create(latitude=coords['latitude'], longitude=coords['longitude'],
+                                   height=coords['height'])
 
-            pe = PerevalAdd.objects.create(coords=co, beauty_title=validated_data['beauty_title'],
-                                           title=validated_data['title'], other_titles=validated_data['other_titles'],
-                                           connect=validated_data['connect'], add_time=validated_data['add_time'],
-                                           level_winter=level['winter'], level_summer=level['summer'],
-                                           level_autumn=level['autumn'], level_spring=level['spring'],
-                                           user=uss)
+        pe = PerevalAdd.objects.create(coords=co, beauty_title=validated_data['beauty_title'],
+                                       title=validated_data['title'], other_titles=validated_data['other_titles'],
+                                       connect=validated_data['connect'], add_time=validated_data['add_time'],
+                                       level_winter=level['winter'], level_summer=level['summer'],
+                                       level_autumn=level['autumn'], level_spring=level['spring'],
+                                       user=uss)
 
-            for obj in images:
-                Images.objects.create(pereval=pe, data=obj['data'], title=obj['title'])
-            data = {
-                'status': '200',
-                'message': 'null',
-                'id': f"{pe.id}"
-            }
-            return data
-
-        except Exception as exc:
-            data = {
-                'status': '500',
-                'message': f'{exc}',
-                'id': 'null'
-            }
-            return data
+        for obj in images:
+            Images.objects.create(pereval=pe, data=obj['data'], title=obj['title'])
+        data = {
+            'status': '200',
+            'message': 'null',
+            'id': f"{pe.id}"
+        }
+        return data
 
     def update(self, instance, validated_data):
         instance.beauty_title = validated_data.get('beauty_title', instance.beauty_title)
@@ -111,8 +108,3 @@ class PerevalSerializer(serializers.ModelSerializer):
         for obj in validated_data['images']:
             Images.objects.create(pereval=instance, data=obj['data'], title=obj['title'])
         return instance
-
-
-
-
-
