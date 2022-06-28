@@ -1,21 +1,32 @@
 from .models import *
 from rest_framework import serializers
 
+
+class CoordsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coords
+        exclude = ('id',)
+
+
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        exclude = ('id', 'user')
+
+class ImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Images
+        exclude = ('id', 'pereval')
+
 class PerevalSerializer(serializers.ModelSerializer):
-    # status = serializers.CharField(max_length=10)
-    coords = serializers.CharField()
-    # beautyTitle = serializers.CharField(max_length=255)
-    # title = serializers.CharField(max_length=255)
-    # other_titles = serializers.CharField(max_length=255)
-    # connect = serializers.CharField()
-    # add_time = serializers.DateTimeField()
-    # level_winter = serializers.CharField(max_length=255)
-    # level_summer = serializers.CharField(max_length=255)
-    # level_autumn = serializers.CharField(max_length=255)
-    # level_spring = serializers.CharField(max_length=255)
-    user = serializers.CharField()
+    coords = CoordsSerializer()
+    user = UsersSerializer()
+    images = ImagesSerializer(many=True)
 
     class Meta:
         model = PerevalAdd
-        fields = ('status', 'coords', 'beautyTitle', 'title', 'other_titles', 'connect', 'add_time',
-                  'level_winter', 'level_summer', 'level_autumn', 'level_spring', 'user')
+        exclude = ('id',)
+
+
+
+

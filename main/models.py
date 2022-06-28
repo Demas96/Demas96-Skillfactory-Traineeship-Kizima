@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import fields
 
+from django.core import serializers
+
 
 class CaseInsensitiveTextField(fields.TextField):
     def db_type(self, connection):
@@ -15,6 +17,9 @@ class Coords(models.Model):
 
     def __str__(self):
         return f'{self.latitude} {self.longitude} {self.height}'
+
+    def extra_address(self):
+        return serializers.serialize('python', self.pereval.all())
 
     class Meta:
         verbose_name_plural = ("Координаты")
@@ -48,7 +53,7 @@ class PerevalAdd(models.Model):
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=NEW)
     coords = models.OneToOneField(Coords, on_delete=models.CASCADE)
-    beautyTitle = models.CharField(max_length=255)
+    beauty_title = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     other_titles = models.CharField(max_length=255)
     connect = models.TextField(blank=True)
@@ -57,17 +62,17 @@ class PerevalAdd(models.Model):
     level_summer = models.CharField(max_length=255, blank=True)
     level_autumn = models.CharField(max_length=255, blank=True)
     level_spring = models.CharField(max_length=255, blank=True)
-    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='pereval')
 
     def __str__(self):
-        return f'{self.beautyTitle} {self.title} {self.other_titles}'
+        return f'{self.beauty_title} {self.title} {self.other_titles}'
 
     class Meta:
         verbose_name_plural = ("Перевалы")
 
 
 class Images(models.Model):
-    pereval = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE)
+    pereval = models.ForeignKey(PerevalAdd, on_delete=models.CASCADE, related_name='images')
     img = models.TextField()
     title = models.CharField(max_length=255)
     date_added = models.DateField(auto_now_add=True)
