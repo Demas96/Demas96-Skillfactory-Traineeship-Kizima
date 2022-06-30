@@ -1,7 +1,12 @@
 from django.http import JsonResponse
-from .models import *
 from rest_framework.views import APIView
+
+from .models import *
+from rest_framework import generics
 from .serializers import PerevalSerializer, PerevalDetailSerializer
+
+
+
 
 
 class PerevalAPIView(APIView):
@@ -31,8 +36,7 @@ class PerevalAPIView(APIView):
         return JsonResponse(data, safe=False)
 
 
-class PerevalListAPIView(APIView):
-
+class PerevalListAPIView(generics.ListAPIView):
     def get(self, *args, **kwargs):
         pk = kwargs.get('pk', None)
         try:
