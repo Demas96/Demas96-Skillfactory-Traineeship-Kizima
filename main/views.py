@@ -1,17 +1,38 @@
+import coreschema
+from APIResponse import ApiResponse
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
+from requests import Response
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.schemas import coreapi, ManualSchema
 from rest_framework.views import APIView
+from drf_yasg import openapi
 
 from .models import *
 from rest_framework import generics
 from .serializers import PerevalSerializer, PerevalDetailSerializer
 
 
+class PerevalEmailAPIView(generics.ListAPIView):
+    serializer_class = PerevalDetailSerializer
+
+    def get(self, request, *args, **kwargs):
+        """GET запрос для вывода всех записей по email пользователя"""
+        email = kwargs.get('email', None)
+        if PerevalAdd.objects.filter(user__email=email):
+            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
+        else:
+            data = {
+                'message': f'Нет записей от email = {email}'
+            }
+        return JsonResponse(data, safe=False)
 
 
-
-class PerevalAPIView(APIView):
+class PerevalAPIView(generics.CreateAPIView):
+    serializer_class = PerevalSerializer
 
     def post(self, request):
+        """POST запрос для добавления модели"""
         pereval = PerevalSerializer(data=request.data)
         try:
             if pereval.is_valid(raise_exception=True):
@@ -25,19 +46,12 @@ class PerevalAPIView(APIView):
             }
         return JsonResponse(data, status=400, safe=False)
 
-    def get(self, request, *args, **kwargs):
-        email = request.GET.get('user__email', None)
-        if PerevalAdd.objects.filter(user__email=email):
-            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
-        else:
-            data = {
-                'message': f'Нет записей от email = {email}'
-            }
-        return JsonResponse(data, safe=False)
-
 
 class PerevalListAPIView(generics.ListAPIView):
+    serializer_class = PerevalSerializer
+
     def get(self, *args, **kwargs):
+        """GET запрос для вывода записи по id"""
         pk = kwargs.get('pk', None)
         try:
             data = PerevalDetailSerializer(PerevalAdd.objects.get(pk=pk)).data
@@ -51,6 +65,7 @@ class PerevalListAPIView(generics.ListAPIView):
         return PerevalAdd.objects.get(pk=pk)
 
     def patch(self, request, pk):
+        """PACH запрос для редактирования записи по id (кроме полей с данными пользователя)"""
         try:
             if PerevalAdd.objects.filter(pk=pk).values('status')[0]['status'] == 'NEW':
                 obj = self.get_object(pk)

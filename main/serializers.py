@@ -1,3 +1,5 @@
+from drf_yasg.utils import swagger_serializer_method
+
 from .models import *
 from rest_framework import serializers
 
@@ -51,7 +53,7 @@ class PerevalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PerevalAdd
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
     def create(self, validated_data):
         user = validated_data['user']
