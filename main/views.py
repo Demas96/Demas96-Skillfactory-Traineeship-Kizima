@@ -1,65 +1,84 @@
-import json
-from django.db import IntegrityError
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
 from .models import *
-from rest_framework.views import APIView
+from rest_framework import generics
+from .serializers import PerevalSerializer, PerevalDetailSerializer
 
-def submitData(request):
-    try:
-        json_body = json.loads(request.body)
-        user = json_body['user']
-        coords = json_body['coords']
-        level = json_body['level']
-        images = json_body['images']
-        if Users.objects.filter(email=user['email']).exists():
-            Users.objects.filter(email=user['email']).update(firstname=user['name'],
-                                                             lastname=user['fam'], patronymic=user['otc'],
-                                                             phone=user['phone'])
-            uss = Users.objects.get(email=user['email'])
+
+class PerevalEmailAPIView(generics.ListAPIView):
+    serializer_class = PerevalDetailSerializer
+
+    def get(self, request, *args, **kwargs):
+        """GET запрос для вывода всех записей по email пользователя"""
+        email = kwargs.get('email', None)
+        if PerevalAdd.objects.filter(user__email=email):
+            data = PerevalDetailSerializer(PerevalAdd.objects.filter(user__email=email), many=True).data
         else:
-            us = User.objects.create(username=user['email'])
-            uss = Users.objects.create(user=us, email=user['email'], firstname=user['name'],
-                                       lastname=user['fam'], patronymic=user['otc'],
-                                       phone=user['phone'])
+            data = {
+                'message': f'Нет записей от email = {email}'
+            }
+        return JsonResponse(data, safe=False)
 
-        co = Coords.objects.create(latitude=coords['latitude'], longitude=coords['longitude'],
-                                   height=coords['height'])
-        pe = PerevalAdd.objects.create(coords=co, beautyTitle=json_body['beauty_title'],
-                                       title=json_body['title'], other_titles=json_body['other_titles'],
-                                       connect=json_body['connect'], add_time=json_body['add_time'],
-                                       level_winter=level['winter'], level_summer=level['summer'],
-                                       level_autumn=level['autumn'], level_spring=level['spring'],
-                                       user=uss)
 
-        for obj in images:
-            Images.objects.create(pereval=pe, img=obj['data'], title=obj['title'])
-        data = {
-            'status': '200',
-            'message': 'null',
-            'id': f"{pe.id}"
-        }
-        return data
+class PerevalAPIView(generics.CreateAPIView):
+    serializer_class = PerevalSerializer
 
-    except Exception as exs:
-        data = {
-            'status': '500',
-            'message': f'{exs}',
-            'id': 'null'
-        }
-        return data
-
-    except KeyError as exs:
-        data = {
-            'status': '400',
-            'message': 'Не хватает полей',
-            'id': 'null'
-        }
-        return data
-
-class PerevalAPIView(APIView):
     def post(self, request):
-        data = submitData(request)
-        return JsonResponse(data, status=data['status'])
+        """POST запрос для добавления модели"""
+        pereval = PerevalSerializer(data=request.data)
+        try:
+            if pereval.is_valid(raise_exception=True):
+                data = pereval.save()
+                return JsonResponse(data, status=200, safe=False)
+        except Exception as exc:
+            data = {
+                'status': '400',
+                'message': f'Не хватает полей {exc}',
+                'id': 'null'
+            }
+        return JsonResponse(data, status=400, safe=False)
+
+
+class PerevalListAPIView(generics.ListAPIView):
+    serializer_class = PerevalSerializer
+
+    def get(self, *args, **kwargs):
+        """GET запрос для вывода записи по id"""
+        pk = kwargs.get('pk', None)
+        try:
+            data = PerevalDetailSerializer(PerevalAdd.objects.get(pk=pk)).data
+        except Exception as exc:
+            data = {
+                'message': f'Нет записи с id = {pk}'
+            }
+        return JsonResponse(data)
+
+    def get_object(self, pk):
+        return PerevalAdd.objects.get(pk=pk)
+
+    def patch(self, request, pk):
+        """PACH запрос для редактирования записи по id (кроме полей с данными пользователя)"""
+        try:
+            if PerevalAdd.objects.filter(pk=pk).values('status')[0]['status'] == 'NEW':
+                obj = self.get_object(pk)
+                serializer = PerevalSerializer(obj, data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    data = {
+                        'state': 1,
+                        'message': 'Данные обновлены'
+                    }
+                    return JsonResponse(data)
+            else:
+                data = {
+                    'state': 0,
+                    'message': f"Не удалось обновить запись: статус записи "
+                               f"{PerevalAdd.objects.filter(pk=pk).values('status')[0]['status']}"
+                }
+                return JsonResponse(data)
+
+        except Exception as exc:
+            data = {
+                'state': 0,
+                'message': f'Не удалось обновить запись: {exc}'
+            }
+            return JsonResponse(data)

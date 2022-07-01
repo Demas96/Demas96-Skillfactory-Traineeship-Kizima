@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import mimetypes
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -29,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+AUTH_USER_MODEL = 'main.Users'
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,8 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
-    # 'main',
+    'drf_yasg',
     'rest_framework',
+    'debug_toolbar',
 ]
 
 SITE_ID = 1
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'pereval.urls'
@@ -115,6 +118,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
+
+mimetypes
+mimetypes.add_type("application/javascript", ".js", True)
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
