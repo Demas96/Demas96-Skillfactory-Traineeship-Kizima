@@ -1,12 +1,4 @@
-import coreschema
-from APIResponse import ApiResponse
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
-from requests import Response
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.schemas import coreapi, ManualSchema
-from rest_framework.views import APIView
-from drf_yasg import openapi
 
 from .models import *
 from rest_framework import generics

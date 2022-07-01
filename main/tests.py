@@ -1,26 +1,59 @@
-from django.test import TestCase
+from rest_framework import status
 from rest_framework.test import APITestCase
+import json
+
 from .models import *
+from .serializers import PerevalSerializer, PerevalDetailSerializer
 
 class PerevalAddTests(APITestCase):
     def test_perevaladd(self):
-        us_test = Users.objects.create(username='test@test.ru', email='test@test.ru', first_name='test',
-                                       last_name='test', patronymic='test',
-                                       phone='test')
-        for p in range(10):
-            co_test = Coords.objects.create(latitude=0, longitude=0,
-                                       height=0)
-            pe_test = PerevalAdd.objects.create(
-                coords=co_test,
-                beauty_title='test',
-                title='for_test3',
-                other_titles='test',
-                connect='test',
-                add_time='2021-09-22 13:18:13.000 +0300',
-                level_winter='test',
-                level_summer='test',
-                level_autumn='test',
-                level_spring='test',
-                user=us_test
-            )
-            Images.objects.create(pereval=pe_test, data='test', title='test')
+        url = 'http://127.0.0.1:8000/submitData/'
+        for i in range(10):
+            data = {
+       "beauty_title":f"test{i}",
+       "title":f"test{i}",
+       "other_titles":f"test{i}",
+       "connect":f"test{i}",
+       "add_time":"2021-09-22 13:18:13",
+
+       "user":{
+          "email":f"test{i}@mail.ru",
+          "fam":f"test{i}",
+          "name":f"test{i}",
+          "otc":f"test{i}",
+          "phone":f"test{i}"
+       },
+
+       "coords":{
+          "latitude":f"{i}",
+          "longitude":f"{i}",
+          "height":f"{i}"
+       },
+
+       "level":{
+          "winter":f"test{i}",
+          "summer":f"test{i}",
+          "autumn":f"test{i}",
+          "spring":f"test{i}"
+       },
+
+       "images":[
+          {
+             "data":f"test{i}",
+             "title":f"test{i}"
+          },
+          {
+             "data":f"test{i}",
+             "title":f"test{i}"
+          }
+       ]
+    }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        for i in range(11)[1:]:
+            url = f'http://127.0.0.1:8000/submitData/{i}/'
+            request = self.client.get(url)
+            print(f'{url} {json.loads(request.content)["id"]}')
+            self.assertEqual(json.loads(request.content)["id"], i)
+
