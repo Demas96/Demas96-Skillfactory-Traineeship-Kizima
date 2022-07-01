@@ -18,8 +18,8 @@ class LevelSerialize(serializers.Serializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='firstname')
-    fam = serializers.CharField(source='lastname')
+    name = serializers.CharField(source='first_name')
+    fam = serializers.CharField(source='last_name')
     otc = serializers.CharField(source='patronymic')
     email = serializers.CharField()
 
@@ -61,14 +61,13 @@ class PerevalSerializer(serializers.ModelSerializer):
         level = validated_data['level']
         images = validated_data['images']
         if Users.objects.filter(email=user['email']).exists():
-            Users.objects.filter(email=user['email']).update(firstname=user['firstname'],
-                                                             lastname=user['lastname'], patronymic=user['patronymic'],
+            Users.objects.filter(email=user['email']).update(first_name=user['first_name'],
+                                                             last_name=user['last_name'], patronymic=user['patronymic'],
                                                              phone=user['phone'])
-            uss = Users.objects.get(email=user['email'])
+            us = Users.objects.get(email=user['email'])
         else:
-            us = User.objects.create(username=user['email'])
-            uss = Users.objects.create(user=us, email=user['email'], firstname=user['firstname'],
-                                       lastname=user['lastname'], patronymic=user['patronymic'],
+            us = Users.objects.create(username=user['email'], email=user['email'], first_name=user['first_name'],
+                                       last_name=user['last_name'], patronymic=user['patronymic'],
                                        phone=user['phone'])
 
         co = Coords.objects.create(latitude=coords['latitude'], longitude=coords['longitude'],
@@ -79,7 +78,7 @@ class PerevalSerializer(serializers.ModelSerializer):
                                        connect=validated_data['connect'], add_time=validated_data['add_time'],
                                        level_winter=level['winter'], level_summer=level['summer'],
                                        level_autumn=level['autumn'], level_spring=level['spring'],
-                                       user=uss)
+                                       user=us)
 
         for obj in images:
             Images.objects.create(pereval=pe, data=obj['data'], title=obj['title'])

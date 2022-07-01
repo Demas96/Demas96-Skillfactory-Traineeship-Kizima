@@ -1,13 +1,14 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 from django.db.models import fields
+from django.contrib.auth.base_user import AbstractBaseUser
 
 from django.core import serializers
 
 
-class CaseInsensitiveTextField(fields.TextField):
-    def db_type(self, connection):
-        return "citext"
+# class CaseInsensitiveTextField(fields.TextField):
+#     def db_type(self, connection):
+#         return "citext"
 
 
 class Coords(models.Model):
@@ -25,19 +26,20 @@ class Coords(models.Model):
         verbose_name_plural = ("Координаты")
 
 
-class Users(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    email = CaseInsensitiveTextField(unique=True)
-    firstname = models.CharField(max_length=255)
-    lastname = models.CharField(max_length=255)
+class Users(AbstractUser):
+    # user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.EmailField(unique=True)
+    # firstname = models.CharField(max_length=255)
+    # lastname = models.CharField(max_length=255)
+    # password = models.CharField(max_length=128, null=True)
     patronymic = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.email}: {self.lastname} {self.firstname} {self.patronymic}'
+        return f'{self.email}: {self.last_name} {self.first_name} {self.patronymic}'
 
-    class Meta:
-        verbose_name_plural = ("Пользователи")
+    # class Meta:
+    #     verbose_name_plural = ("Пользователи")
 
 
 class PerevalAdd(models.Model):
