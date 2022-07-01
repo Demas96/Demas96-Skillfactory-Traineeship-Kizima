@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-
 from .models import *
 from rest_framework import generics
 from .serializers import PerevalSerializer, PerevalDetailSerializer
@@ -83,4 +82,3 @@ class PerevalListAPIView(generics.ListAPIView):
                 'message': f'Не удалось обновить запись: {exc}'
             }
             return JsonResponse(data)
-

@@ -2,9 +2,6 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 import json
 
-from .models import *
-from .serializers import PerevalSerializer, PerevalDetailSerializer
-
 class PerevalAddTests(APITestCase):
     def test_perevaladd(self):
         url = 'http://127.0.0.1:8000/submitData/'

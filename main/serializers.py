@@ -1,5 +1,3 @@
-from drf_yasg.utils import swagger_serializer_method
-
 from .models import *
 from rest_framework import serializers
 
@@ -26,7 +24,6 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ('email', 'fam', 'name', 'otc', 'phone',)
-        # exclude = ('id', 'user')
 
 
 class ImagesSerializer(serializers.ModelSerializer):
